@@ -22,6 +22,7 @@ let intervalTimer: ReturnType<typeof setInterval> | null = null;
 let progressCallback: ((percent: number | null) => void) | null = null;
 let beforeQuitForInstallCallback: (() => void) | null = null;
 let updateBannerStateCallback: ((state: UpdateBannerState) => void) | null = null;
+let updatePushCallback: ((version: string) => void) | null = null;
 let updateBannerState = createInitialUpdateBannerState();
 let downloadInFlight: Promise<boolean> | null = null;
 
@@ -77,6 +78,7 @@ export function setupAutoUpdater(): void {
       type: "update-available",
       version: info.version,
     });
+    updatePushCallback?.(info.version);
     isManualCheck = false;
   });
 
@@ -218,4 +220,9 @@ export function setUpdateBannerStateCallback(cb: (state: UpdateBannerState) => v
 // 获取当前侧栏更新状态（供渲染层首屏同步）。
 export function getUpdateBannerState(): UpdateBannerState {
   return { ...updateBannerState };
+}
+
+// 注入更新推送回调（供主进程通过远程通道推送新版本通知）。
+export function setUpdatePushCallback(cb: (version: string) => void): void {
+  updatePushCallback = cb;
 }
